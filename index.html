@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'/>
+    <title>Dynamic Visualization</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css" rel="stylesheet"/>
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.0/mapbox-gl.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.0/mapbox-gl.css' rel='stylesheet'/>
+    <style>
+
+        svg {
+            fill: red
+        }
+
+        .slidecontainer {
+            width: 70%;
+            margin-left: 12%;
+            position: absolute;
+            bottom: 0;
+        }
+
+        /* The slider itself */
+        .slider_time {
+            -webkit-appearance: none; /* Override default CSS styles */
+            appearance: none;
+            width: 100%; /* Full-width */
+            height: 25px; /* Specified height */
+            background: #d3d3d3; /* Grey background */
+            outline: none; /* Remove outline */
+            opacity: 1; /* Set transparency (for mouse-over effects on hover) */
+            -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+            transition: opacity .2s;
+        }
+
+        /* Mouse-over effects */
+        .slider:hover {
+            opacity: 1; /* Fully shown on mouse-over */
+        }
+
+        /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #4CAF50; /* Green background */
+            cursor: pointer; /* Cursor on hover */
+        }
+
+        .legende {
+            border-radius: 25px;
+            position: absolute;
+            bottom: 40px;
+            padding: 10px;
+            left: 40px;
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+        .btnWrapper {
+
+
+        }
+
+        .calender {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            position: absolute;
+
+            top: 40px;
+            right: 40px;
+
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+        .clock {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            position: absolute;
+
+            top: 100px;
+            right: 40px;
+
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+        .totalcars {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            position: absolute;
+
+            top: 160px;
+            right: 40px;
+
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+        .eventCarsBounding {
+            padding: 11px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            position: absolute;
+
+            top: 220px;
+            right: 40px;
+
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+        .regularCarsBounding {
+            padding: 11px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            position: absolute;
+
+            top: 300px;
+            right: 40px;
+
+            background: #fafafa;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        }
+
+
+        .hudWrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .hud {
+            position: relative;
+            border: 2px solid gray;
+            width: 70vw;
+            height: 80vh;
+
+        }
+
+        .legendeFarbe {
+            left: 10%;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 100%;
+        }
+
+        .legendeFarbeRot {
+            background-color: #B03;
+        }
+
+        .legendeFarbeBlau {
+            background-color: #40F;
+        }
+
+        .lblCard1 {
+            bottom: 10%;
+            top: 17%;
+            left: 27%;
+            font-family: AvenirNext-Medium;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.87);
+        }
+
+        .lblCard2 {
+
+            bottom: 10%;
+            top: 57%;
+            left: 27%;
+            font-family: AvenirNext-Medium;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.87);
+
+        }
+
+        .legendenEintrag {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .grouplbl {
+            font-size: 25px;
+            color: #000000;
+        }
+
+        .switch {
+            display: inline-block;
+            width: 60px;
+            position: relative;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            color: red;
+            cursor: pointer;
+            width: 86%;
+            top: 0;
+            left: 8%;
+            right: 0;
+            bottom: 4%;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 324px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        #menu {
+            background: #fff;
+            position: absolute;
+            z-index: 1;
+            top: 10px;
+            right: 10px;
+            border-radius: 3px;
+            width: 120px;
+            border: 1px solid rgba(0, 0, 0, 0.4);
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        #menu a {
+            font-size: 13px;
+            color: #404040;
+            display: block;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+
+        #menu a:last-child {
+            border: none;
+        }
+
+        #menu a:hover {
+            background-color: #f8f8f8;
+            color: #404040;
+        }
+
+        #menu a.active {
+            background-color: #3887be;
+            color: #ffffff;
+        }
+
+        #menu a.active:hover {
+            background: #3074a4;
+        }
+
+        #menuu {
+            font-family: 'Open Sans', sans-serif;
+            color: #000000;
+        }
+
+        #menuuWhite {
+            font-family: 'Open Sans', sans-serif;
+            color: #FFFFFF;
+        }
+
+
+    </style>
+</head>
+<body>
+<style>
+
+    input[type="radio"] {
+        margin: 2em 1em;
+        -webkit-transform: scale(2, 2);
+    }
+
+    .boxdraw {
+        background: rgba(56, 135, 190, 0.1);
+        border: 2px solid #3887be;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .overlay {
+        position: absolute;
+        color: #000000;
+        top: 10px;
+        left: 10px;
+    }
+
+    .overlayWhite {
+        position: absolute;
+        color: #FFFFFF;
+        top: 10px;
+        left: 10px;
+    }
+    }
+
+    .overlay button {
+        font: 600 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        background-color: #3386c0;
+        color: #fff;
+        display: inline-block;
+        margin: 0;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+
+    .overlay button:hover {
+        background-color: #4ea0da;
+    }
+
+    .button{
+        height:40px;
+    }
+
+</style>
+
+
+<div id='map'></div>
+
+
+<div class="slidecontainer">
+    <input type="range" min="1" max="1000" value="0" class="slider_time" id="myRange">
+</div>
+<div id='overlay' class='overlay'>
+
+    <div>
+        <button class="button" id='btnStart'>Start</button>
+        <button class="button" id='btnPause'>Pause</button>
+        <button class="button" id='btnFile'>File</button>
+        <button class="button" id='btnSpeedUp'>Speed +</button>
+        <button class="button" id='btnSpeedDown'>Speed -</button>
+        <button class="button" id="btnWurmlengthUp">Wurmlength +</button>
+        <button class="button" id="btnWurmlengthDown">Wurmlength -</button>
+        <button class="button" id="btnHideMenue">Hide Menue</button>
+        <button class="button" id="btnRefresh">Refresh</button>
+
+        <div id="labels" style="visibility: visible">
+            <div>
+                <label class="grouplbl" id="lblSpeed">Speed: </label>
+                <label class="grouplbl" id="speed">0</label>
+            </div>
+            <div>
+                <label class="grouplbl" id="lblRange">Wurmlength: </label>
+                <label class="grouplbl" id="range">0</label>
+            </div>
+
+            <div>
+                <div>
+                    <label class="switch">
+                        <input id="tglNoEvent" type="checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label class="grouplbl" id="lblNoEvent">Standard-Routing</label>
+                </div>
+                <div>
+                    <label class="switch">
+                        <input id="tglEvent" type="checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <label class="grouplbl" id="lblEvent">Event-Routing</label>
+                </div>
+            </div>
+
+            <div id="menuu">
+                <div>
+                    <div>
+                        <label class='grouplbl'>Choose Map-Style</label>
+                    </div>
+                    <input
+                            id="streets-v10"
+                            type="radio"
+                            name="rtoggle"
+                            value="light"
+                            checked="checked"
+                    />
+                    <label class='grouplbl' for="streets">Graphmasters</label>
+                </div>
+                <div>
+                    <input id="light-v10" type="radio" name="rtoggle" value="light"/>
+                    <label class='grouplbl' for="streets">light</label>
+                </div>
+                <div>
+                    <input id="dark-v10" type="radio" name="rtoggle" value="dark"/>
+                    <label class='grouplbl' for="dark">dark</label>
+                </div>
+                <div>
+                    <input id="outdoors-v11" type="radio" name="rtoggle" value="outdoors"/>
+                    <label class='grouplbl' for="outdoors">outdoors</label>
+                </div>
+                <div>
+                    <input id="satellite-v9" type="radio" name="rtoggle" value="satellite"/>
+                    <label class='grouplbl' sfor="satellite">satellite</label>
+                </div>
+                <div>
+                    <input id="traffic-v1" type="radio" name="rtoggle" value="traffic"/>
+                    <label class='grouplbl' sfor="satellite">traffic</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main_dynamic.js"></script>
+</div>
+<div style="background-color:rgba(0, 0, 0, 0.5);"></div>
+<div class='hudWrapper'>
+    <div class='hud'>
+        <div class='legende'>
+            <div class="legendenEintrag">
+                <div class='legendeFarbe legendeFarbeRot'></div>
+                <div class="lblCard1" id="messe1">NUNAV Standard-Routing</div>
+            </div>
+            <div class="legendenEintrag" style="margin-top: 10px">
+                <div class='legendeFarbe legendeFarbeBlau'></div>
+                <div class="lblCard2" id="messe2">NUNAV Event-Routing</div>
+            </div>
+            <div class="legendenEintrag" style="margin-top: 10px">
+                <div class='legendeFarbe'><img src="corridors.svg" style="margin-right: 10px;">
+                </div>
+                <div class="lblCard2" id="messe2">Korridore</div>
+            </div>
+        </div>
+
+        <div class='calender'>
+            <img src="calender.svg" style="margin-right: 10px">
+            <label class="grouplbl" id="calender">01.01.1970</label>
+        </div>
+
+        <div class='clock'>
+            <img src="clock.svg" style="margin-right: 10px">
+            <label class="grouplbl" id="time">00:00</label>
+        </div>
+
+        <div class='eventCarsBounding'>
+            <div style="background: transparent;border: 3px solid #3887be;">
+                <img src="car_blue.svg" style="margin: 3px">
+            </div>
+            <label style="margin-left: 20px" class="grouplbl" id="eventCarsBounding">0</label>
+        </div>
+
+        <div class='regularCarsBounding'>
+            <div style="background: transparent;border: 3px solid #3887be;">
+                <img src="car_red.svg" style="margin: 3px">
+            </div>
+            <label style="margin-left: 20px" class="grouplbl" id="regularCarsBounding">0</label>
+        </div>
+
+        <div class='totalcars'>
+            <img src="cars.svg" style="margin-right: 10px">
+            <label class="grouplbl" id="totalcars">0</label>
+        </div>
+
+    </div>
+</div>
+</div>
+
+</body>
+
+</html>
